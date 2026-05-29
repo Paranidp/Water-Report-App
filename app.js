@@ -243,17 +243,35 @@ async function register () {
 async function login() {
     var user = document.getElementById('log-user').value.trim().toLowerCase();
     var pass = document.getElementById('log-pass').value;
-    if (!user || !pass) return toast('⚠️ Enter username and password', '#e63946');
-    try {
-        var found = await fbGet('/users/' + user);
-        if (!found || found.password !== pass) return toast('❌ Wrong username or password', '#e63946');
-        session = { name: found.name, username: found.username, phone: found.phone };
-        localStorage.setItem('ww_session', JSON.stringify(session));
-        toast('✅ Welcome, ' + found.name + '!', '#2dc653');
-        setTimeout(() => goTo('home'), 900);
-    } catch (e) { toast('❌ Error connecting to database', '#e63946'); }
-}
 
+    if (!user || !pass)
+        return toast('⚠️ Enter username and password', '#e63946');
+
+    try {
+        var users = await fbGet('/users') || {};
+
+        var foundUser = null;
+
+        for (var key in users) {
+            if (users[key].username === user && users[key].password === pass) {
+                foundUser = users[key];
+                break;
+            }
+        }
+
+        if (!foundUser)
+            return toast('❌ Wrong username or password', '#e63946');
+
+        // ✅ store logged user
+        localStorage.setItem('wwUser', JSON.stringify(foundUser));
+
+        toast('✅ Login successful', '#2dc653');
+        setTimeout(() => goTo('home'), 800);
+
+    } catch (e) {
+        toast('❌ Error connecting to database', '#e63946');
+    }
+}
 function logout() {
     if (confirm('Logout from WaterWatch?')) { session = null; localStorage.removeItem('ww_session'); goTo('login'); }
 }
