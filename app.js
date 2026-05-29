@@ -202,16 +202,42 @@ async function register() {
     var phone = document.getElementById('reg-phone').value.trim();
     var pass = document.getElementById('reg-pass').value;
     var confirm = document.getElementById('reg-confirm').value;
-    if (!name || !user || !phone || !pass) return toast('⚠️ Please fill all fields', '#e63946');
-    if (pass.length < 6) return toast('⚠️ Password min 6 characters', '#e63946');
-    if (pass !== confirm) return toast('⚠️ Passwords do not match', '#e63946');
+
+    if (!name || !user || !phone || !pass)
+        return toast('⚠️ Please fill all fields', '#e63946');
+
+    if (pass.length < 6)
+        return toast('⚠️ Password min 6 characters', '#e63946');
+
+    if (pass !== confirm)
+        return toast('⚠️ Passwords do not match', '#e63946');
+
     try {
-        var existing = await fbGet('/users/' + user);
-        if (existing) return toast('⚠️ Username already taken', '#e63946');
-        await fbSet('/users/' + user, { name, username: user, phone, password: pass });
+        // 🔍 Check if username already exists (loop through users)
+        var users = await fbGet('/users') || {};
+
+        for (var key in users) {
+            if (users[key].username === user) {
+                return toast('⚠️ Username already taken', '#e63946');
+            }
+        }
+
+        // ✅ Create unique ID instead of using username as key
+        var userId = 'u_' + Date.now();
+
+        await fbSet('/users/' + userId, {
+            name: name,
+            username: user,
+            phone: phone,
+            password: pass
+        });
+
         toast('✅ Account created! Please log in.', '#2dc653');
         setTimeout(() => goTo('login'), 1200);
-    } catch (e) { toast('❌ Error connecting to database', '#e63946'); }
+
+    } catch (e) {
+        toast('❌ Error connecting to database', '#e63946');
+    }
 }
 
 async function login() {
