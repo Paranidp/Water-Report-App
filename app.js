@@ -196,7 +196,7 @@ function goTo(screen) {
 // ══════════════════════════════════════════
 //  AUTH
 // ══════════════════════════════════════════
-async function register() {
+async function register () {
     var name = document.getElementById('reg-name').value.trim();
     var user = document.getElementById('reg-user').value.trim().toLowerCase();
     var phone = document.getElementById('reg-phone').value.trim();
